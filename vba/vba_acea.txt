@@ -1,0 +1,54 @@
+VBA код для Вывода данных из массива ACEA (только первое значение подстроки в каждой строке)
+Sub FindMultipleSubstringsACEA_oil()
+    Dim sourceRange As Range
+    Dim targetColumn As Range
+    Dim cell As Range
+    Dim searchStrings As Variant
+    Dim searchString As Variant
+    Dim foundString As String
+    Dim foundStrings As New Collection ' Коллекция для хранения найденных подстрок
+    Dim item As Variant
+    
+    ' Задаем диапазон ячеек для поиска и записи результатов
+    Set sourceRange = ThisWorkbook.Sheets("Лист1").Range("D:D") ' Устанавливаем в столбец D листа "Лист1"
+    
+    ' Задаем подстроки, которые будем искать (включая "ACEA ")
+    searchStrings = Array("ACEA А4", "ACEA A5", "ACEA B1", "ACEA B2", "ACEA B3", "ACEA B4", "ACEA B5", "ACEA C1", "ACEA C2", "ACEA C3", "ACEA C4", "ACEA C5", "ACEA C6", "ACEA E2", "ACEA E3", "ACEA E4", "ACEA E5", "ACEA E6", "ACEA E7", "ACEA A1", "ACEA A2", "ACEA A3", "ACEA E1", "ACEA E10", "ACEA E11", "ACEA E9")
+    
+    ' Устанавливаем диапазон для записи результатов (в столбец I листа "Лист1")
+    Set targetColumn = ThisWorkbook.Sheets("Лист1").Range("I:I") ' Записываем в столбец I на том же листе
+    
+    ' Перебираем каждую ячейку в указанном диапазоне
+    For Each cell In sourceRange
+        ' Получаем значение текущей ячейки
+        sourceString = cell.Value
+        
+        ' Инициализируем переменную для хранения найденной подстроки
+        foundString = ""
+        
+        ' Инициализируем коллекцию для хранения найденных подстрок
+        Set foundStrings = New Collection
+        
+        ' Перебираем все подстроки для поиска
+        For Each searchString In searchStrings
+            ' Проверяем, содержит ли значение ячейки текущую подстроку
+            If InStr(1, sourceString, searchString, vbTextCompare) > 0 Then
+                ' Если подстрока найдена и еще не добавлена в результат, добавляем ее и выходим из цикла
+                If Not IsInCollection(foundStrings, searchString) Then
+                    foundStrings.Add searchString
+                    foundString = Replace(searchString, "ACEA ", "") ' Удаляем "ACEA " из найденной подстроки
+                    Exit For ' Выходим из цикла, так как нашли первую соответствующую подстроку
+                End If
+            End If
+        Next searchString
+        
+        ' Записываем найденную подстроку в указанный диапазон
+        targetColumn.Cells(cell.Row, 1).Value = foundString
+    Next cell
+End Sub
+
+Function IsInCollection(coll As Collection, val As Variant) As Boolean
+    On Error Resume Next
+    IsInCollection = Not coll(val) Is Nothing
+    On Error GoTo 0
+End Function

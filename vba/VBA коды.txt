@@ -1,0 +1,171 @@
+VBA код для Вывода данных из массива SAE (есть дубли, их обработку откладываем) 
+Sub FindMultipleSubstringsSAE_oil()
+    Dim sourceRange As Range
+    Dim targetColumn As Range
+    Dim cell As Range
+    Dim searchStrings As Variant
+    Dim searchString As Variant
+    Dim foundString As String
+    Dim lastChar As String
+    Dim foundStrings As New Collection ' Коллекция для хранения уникальных найденных подстрок
+    Dim item As Variant
+    
+    ' Задаем диапазон ячеек в столбце, в котором нужно искать подстроки
+    Set sourceRange = ThisWorkbook.Sheets("Лист1").Range("D:D") ' Ищем в столбце D на листе "Лист1"
+    
+    ' Задаем подстроки, которые нужно найти (в виде массива)
+    searchStrings = Array("20W50", "15W50", "15W40", "15W30", "10W60", "10W50", "10W40", "10W30", "5W50", "5W40", "5W30", "5W20", "0W40", "0W30", "0W20", "0W16", "0W10", "0W8")
+    
+    ' Определяем целевой столбец, куда будем записывать найденные подстроки
+    Set targetColumn = ThisWorkbook.Sheets("Лист1").Range("H:H") ' Записываем в столбец H на том же листе
+    
+    ' Перебираем каждую ячейку в указанном столбце
+    For Each cell In sourceRange
+        ' Получаем содержимое текущей ячейки
+        sourceString = cell.Value
+        
+        ' Инициализируем переменную для хранения найденной подстроки
+        foundString = ""
+        
+        ' Очищаем коллекцию для хранения уникальных найденных подстрок
+        Set foundStrings = New Collection
+        
+        ' Перебираем все подстроки для поиска
+        For Each searchString In searchStrings
+            ' Проверяем, содержит ли исходная строка текущую подстроку
+            If InStr(1, sourceString, searchString, vbTextCompare) > 0 Then
+                ' Если найдена подстрока и она еще не была добавлена в коллекцию, добавляем ее в коллекцию и в переменную foundString
+                If Not IsInCollection(foundStrings, searchString) Then
+                    foundStrings.Add searchString
+                    foundString = foundString & searchString & " "
+                End If
+            End If
+        Next searchString
+        
+        ' Удаляем лишний пробел в конце строки, если он есть
+        foundString = Trim(foundString)
+        
+        ' Записываем найденные подстроки в столбец H
+        targetColumn.Cells(cell.Row, 1).Value = foundString
+    Next cell
+End Sub
+
+Function IsInCollection(coll As Collection, val As Variant) As Boolean
+    On Error Resume Next
+    IsInCollection = Not coll(val) Is Nothing
+    On Error GoTo 0
+End Function
+ 
+
+VBA код для Вывода данных из массива API (только первое значение подстроки в каждой строке)
+Sub FindMultipleSubstringsAPI_oilMod()
+    Dim sourceRange As Range
+    Dim targetColumn As Range
+    Dim cell As Range
+    Dim searchStrings As Variant
+    Dim searchString As Variant
+    Dim foundString As String
+    Dim foundStrings As New Collection ' Коллекция для хранения уникальных найденных подстрок
+    Dim item As Variant
+    
+    ' Задаем диапазон ячеек в столбце, в котором нужно искать подстроки
+    Set sourceRange = ThisWorkbook.Sheets("Лист1").Range("D:D") ' Ищем в столбце D на листе "Лист1"
+    
+    ' Задаем подстроки, которые нужно найти (в виде массива)
+    searchStrings = Array("API CA", "API CB", "API CC", "API CD", "API CE", "API CF", "API CF-2", "API CF-3", "API CF-4", "API CG-4", "API CH-4", "API CI-4", "API CI-4 PLUS", "API CI-4+", "API CJ-4", "API CK-4", "API EC", "API FA-4", "API GF-4", "API GF-5", "API GL-3", "API GL-4", "API GL-5", "API RC", "API SA", "API SB", "API SC", "API SD", "API SE", "API SF", "API SG", "API SH", "API SJ", "API SL", "API SM", "API SM EC", "API SN", "API SN RC", "API SN+", "API SN+ RC", "API SP", "API SP-RC", "API TB", "API TC", "API TC+", "API TD", "API TSC 3", "API TSC 4", "API CF", "API CF-2", "API CF-3", "API CF-4", "API CG-4", "API CH-4", "API CI-4", "API CI-4 PLUS", "API CI-4+", "API CJ-4", "API CK-4", "API FA-4", "API SD", "API SF", "API SG", "API SH", "API SJ", "API SL", "API SM", "API SN", "API SN-RC", "API SN+", "API SN PLUS", "API SP", "API SP-RC")
+    
+    ' Определяем целевой столбец, куда будем записывать найденные подстроки
+    Set targetColumn = ThisWorkbook.Sheets("Лист1").Range("I:I") ' Записываем в столбец I на том же листе
+    
+    ' Перебираем каждую ячейку в указанном столбце
+    For Each cell In sourceRange
+        ' Получаем содержимое текущей ячейки
+        sourceString = cell.Value
+        
+        ' Инициализируем переменную для хранения найденной подстроки
+        foundString = ""
+        
+        ' Инициализируем коллекцию для хранения уникальных найденных подстрок
+        Set foundStrings = New Collection
+        
+        ' Перебираем все подстроки для поиска
+        For Each searchString In searchStrings
+            ' Проверяем, содержит ли исходная строка текущую подстроку
+            If InStr(1, sourceString, searchString, vbTextCompare) > 0 Then
+                ' Если найдена подстрока и она не была добавлена ранее, добавляем ее в коллекцию и в строку foundString
+                If Not IsInCollectionAPI(foundStrings, searchString) Then
+                    foundStrings.Add searchString
+                    foundString = Replace(searchString, "API ", "")
+                    Exit For ' Выходим из цикла, так как найдено первое подстрочное значение
+                End If
+            End If
+        Next searchString
+        
+        ' Записываем найденные подстроки в столбец I
+        targetColumn.Cells(cell.Row, 1).Value = foundString
+    Next cell
+End Sub
+
+Function IsInCollectionAPI(coll As Collection, val As Variant) As Boolean
+    On Error Resume Next
+    IsInCollectionAPI = Not coll(val) Is Nothing
+    On Error GoTo 0
+End Function
+
+
+VBA код для Вывода данных из массива ACEA (только первое значение подстроки в каждой строке)
+Sub FindMultipleSubstringsACEA_oil()
+    Dim sourceRange As Range
+    Dim targetColumn As Range
+    Dim cell As Range
+    Dim searchStrings As Variant
+    Dim searchString As Variant
+    Dim foundString As String
+    Dim foundStrings As New Collection ' Коллекция для хранения найденных подстрок
+    Dim item As Variant
+    
+    ' Задаем диапазон ячеек для поиска и записи результатов
+    Set sourceRange = ThisWorkbook.Sheets("Лист1").Range("D:D") ' Устанавливаем в столбец D листа "Лист1"
+    
+    ' Задаем подстроки, которые будем искать (включая "ACEA ")
+    searchStrings = Array("ACEA А4", "ACEA A5", "ACEA B1", "ACEA B2", "ACEA B3", "ACEA B4", "ACEA B5", "ACEA C1", "ACEA C2", "ACEA C3", "ACEA C4", "ACEA C5", "ACEA C6", "ACEA E2", "ACEA E3", "ACEA E4", "ACEA E5", "ACEA E6", "ACEA E7", "ACEA A1", "ACEA A2", "ACEA A3", "ACEA E1", "ACEA E10", "ACEA E11", "ACEA E9")
+    
+    ' Устанавливаем диапазон для записи результатов (в столбец I листа "Лист1")
+    Set targetColumn = ThisWorkbook.Sheets("Лист1").Range("I:I") ' Записываем в столбец I на том же листе
+    
+    ' Перебираем каждую ячейку в указанном диапазоне
+    For Each cell In sourceRange
+        ' Получаем значение текущей ячейки
+        sourceString = cell.Value
+        
+        ' Инициализируем переменную для хранения найденной подстроки
+        foundString = ""
+        
+        ' Инициализируем коллекцию для хранения найденных подстрок
+        Set foundStrings = New Collection
+        
+        ' Перебираем все подстроки для поиска
+        For Each searchString In searchStrings
+            ' Проверяем, содержит ли значение ячейки текущую подстроку
+            If InStr(1, sourceString, searchString, vbTextCompare) > 0 Then
+                ' Если подстрока найдена и еще не добавлена в результат, добавляем ее и выходим из цикла
+                If Not IsInCollection(foundStrings, searchString) Then
+                    foundStrings.Add searchString
+                    foundString = Replace(searchString, "ACEA ", "") ' Удаляем "ACEA " из найденной подстроки
+                    Exit For ' Выходим из цикла, так как нашли первую соответствующую подстроку
+                End If
+            End If
+        Next searchString
+        
+        ' Записываем найденную подстроку в указанный диапазон
+        targetColumn.Cells(cell.Row, 1).Value = foundString
+    Next cell
+End Sub
+
+Function IsInCollection(coll As Collection, val As Variant) As Boolean
+    On Error Resume Next
+    IsInCollection = Not coll(val) Is Nothing
+    On Error GoTo 0
+End Function
+
+
